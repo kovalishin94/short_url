@@ -1,17 +1,10 @@
 <script setup lang="ts">
-import { useUserStore } from "@/stores/user";
+import { useRouter } from "vue-router";
 
-const userStore = useUserStore();
+const router = useRouter();
+router.push({ name: "urls" });
 </script>
 
 <template>
-  <main>
-    <h1>Hello World</h1>
-    <button
-      @click="userStore.removeUserData"
-      class="border-2 py-2 px-6 border-gray-900 rounded-md"
-    >
-      Выход
-    </button>
-  </main>
+  <main></main>
 </template>
