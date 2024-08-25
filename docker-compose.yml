@@ -1,0 +1,49 @@
+services:
+  psql:
+    image: postgres:15.8-alpine3.20
+    container_name: short_url_psql
+    restart: unless-stopped
+    volumes:
+      - ./psql:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - .env
+
+  django:
+    build: ./short_url
+    container_name: short_url_django
+    volumes:
+      - ./short_url:/usr/share/app
+    command: >
+      sh -c "
+      ./wait-for-postgres.sh psql && 
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py createsuperuser --no-input --username admin --email admin@example.com || true &&
+      python manage.py runserver 0.0.0.0:8000
+      "
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    depends_on:
+      - psql
+  
+  node:
+    image: node:22-alpine3.20
+    container_name: short_url_node
+    restart: unless-stopped
+    volumes:
+      - ./short_url_frontend:/usr/share/app
+    command: >
+      sh -c "
+      cd /usr/share/app &&
+      npm install &&
+      npm run dev -- --host 0.0.0.0 --port 5173
+      "
+    ports:
+      - 5173:5173
+    env_file:
+      - .env
+    depends_on:
+      - django
